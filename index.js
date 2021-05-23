@@ -1,6 +1,8 @@
 const app = require('express')();
 const cors = require("cors");
 const {didIWin,getIntegerForm} = require("./game")
+const {getMoves,cleanRoom,creteRoom,getPlayersCount,findRoom} =  require("./roomFuntions")
+
 app.use(cors());
 const server = require('http').createServer(app);
 
@@ -11,76 +13,58 @@ const io = require('socket.io')(server,{
 });
 
 
-const rooms = [
-    
-]
-
-const getMoves = (room,name,option) =>{
-    return rooms.find(element => {
-        if(element.room===room){
-            element.moves = element.moves+1;
-            if(element.moves===1){
-                element.player1={name,option}
-            }else{
-                element.player2={name,option}
-                const player1ElectionInt = getIntegerForm(element.player1.option)
-                const player2ElectionInt = getIntegerForm(element.player2.option)
-
-                const player1won = didIWin(player1ElectionInt,player2ElectionInt)
-                // console.log(`${player1}, ${player2}: ${player1won}`)
-                element.winner = player1won
-            }
-            if(element.moves===3){
-                element.moves=1
-                
-            }
-            return element
-        }
-    });
-}
-const cleanRoom = (room) =>{
-    return rooms.find(element => {
-        if(element.room==room){
-            element.moves = 0;
-            element.player1 = {}
-            element.player2 = {}
-            return element
-        }
-    });
-}
-
 server.listen(3000);
 io.on('connection', (socket) => { 
     console.log("new Client: ",socket.id)
     
-    socket.on("joinRoom",(clientInfo) => {
-        console.log(`${clientInfo.name} wants to join room: ${clientInfo.room}`)
+    socket.on("joinRoom",(data) => {
+        console.log(`${data.name} wants to join room: ${data.room}`)
 
-        socket.join(clientInfo.room);
-        io.to(clientInfo.room).emit("joinRoom",{name:clientInfo.name,room:clientInfo.room});
-        rooms.push({room:clientInfo.room,moves:0,player1:{name:"",option:""},player2:{name:"",option:""},player1won:false})
+        // TEST GET PLAYERS
+        // getPlayersCount("1")
+        
+        // TEST FIND ROOM
+        // findRoom("2")
+        
+        //join group
+        const checkRoomCreated = findRoom(data.room)
+        
+        if(checkRoomCreated){
+            socket.join(data.room);
+
+            //Send to other player in the group
+            io.to(data.room).emit("joinRoom",{name:data.name,room:data.room});
+
+            //add the room with a basic data
+            creteRoom(data.room)
+        }else{
+            
+        }
+
+ 
+        
     })
 
     socket.on("newMove",(data)=>{
         console.log(`${data.name} picked: ${data.option} for room: ${data.room}`)
     
+        //get the data from the room
         const roomDetails = getMoves(data.room,data.name,data.option)
-        
-        // rooms.forEach(element => {
-        //     console.log(element)
-        // });
-        // console.log(roomDetails)
+
+        //send the data to the client
         io.to(data.room).emit("newMove",{roomDetails});
     })
 
     socket.on("cleanRoom",(data)=>{
-        const newRoomClean = cleanRoom(data.room)
         console.log("CLEAN ROOM",data.room)
         
-        // rooms.forEach(element => {
-        //     console.log(element)
-        // });
-        console.log(newRoomClean)
+        //clean the player1, player2 and moves from the room
+        const newRoomClean = cleanRoom(data.room)
+        
+
+        // console.log(newRoomClean)
+
+        //send the clean room to the client so it can restart the board
         io.to(data.room).emit("cleanRoom",{newRoomClean});
     })
     
