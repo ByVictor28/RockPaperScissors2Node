@@ -7,7 +7,10 @@ const {
     joinCreatedRoom,
     isRoomTaken,
     makeAMove,
-    cleanRoom
+    cleanRoom,
+    canAccesRoom,
+    leaveRoom,
+    getRoomInfo
 } =  require("./roomFuntions")
 
 app.use(cors());
@@ -31,16 +34,36 @@ io.on('connection', (socket) => {
             //join group
             socket.join(data.room);
 
-            //Send to other player in the group
-            io.to(data.room).emit("joinRoom",{name:data.name,room:data.room});
-
             //add the room with a basic data
             creteRoom(data.room,data.name)
+
+            //Get the room to send it to client
+            const roomDetails = getRoomInfo(data.room)
+            //Send to other player in the group
+            io.to(data.room).emit("joinRoom",roomDetails);
+
         }else{
-            socket.join(data.room);
-            io.to(data.room).emit("joinRoom",{name:data.name,room:data.room});
-            joinCreatedRoom(data.room,data.name)
+
+            if(canAccesRoom(data.room)){
+                socket.join(data.room);
+                joinCreatedRoom(data.room,data.name)
+                
+                //Get the room to send it to client
+                const roomDetails = getRoomInfo(data.room)
+                io.to(data.room).emit("joinRoom",roomDetails);
+            }
+            else{
+                io.to(socket.id).emit("access_denied")
+            }
+            
         }
+    })
+
+    socket.on("leaveGroup",({room,name}) => {
+        console.log("LEAVE" , room,name)
+        const newRoom = leaveRoom(room,name)
+
+        io.to(room).emit("leaveGroup",newRoom)
     })
 
     socket.on("newMove",(data)=>{

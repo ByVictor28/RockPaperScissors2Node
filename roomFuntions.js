@@ -33,6 +33,9 @@ exports.printAllRooms = () =>{
         console.log("\nEND ROOM")
     })    
 }
+exports.getRoomInfo= (room) =>{
+    return rooms.find(elementRoom => elementRoom.room === room)
+}
 
 exports.creteRoom = (room,playerName) => {
     const newRoom = {
@@ -119,9 +122,37 @@ exports.cleanRoom = (room) =>{
 
 
 //COUNTS NUMBERS OF PLAYERS IN A ROOM
-const getPlayersCount = (room) =>{
+exports.canAccesRoom = (room) =>{
     const roomDetails = rooms.find(element => element.room === room);
-    console.log(`\n[[Room function]] get players count: ${roomDetails.players.length}\n`)
-    return roomDetails.players
+    if(roomDetails.players[0].name==="" || roomDetails.players[1].name===""){
+        return true
+    }
+    console.log(`\n[[Room function]] get players count\n`)
+    return false
+}
+
+exports.leaveRoom = (room="1",name="1") =>{
+    return rooms.find(roomElement => {
+        if(roomElement.room === room){
+            if(roomElement.players[0].name===name){
+                roomElement.players[0].name = ""
+                roomElement.players[0].option = ""
+                roomElement.players[0].score = ""
+
+                
+                roomElement.players[1].option = ""
+                roomElement.players[1].score = ""
+            }else{
+                roomElement.players[1].name = ""
+                roomElement.players[1].option = ""
+                roomElement.players[1].score = ""
+
+                
+                roomElement.players[0].option = ""
+                roomElement.players[0].score = ""
+            }
+            return roomElement
+        }
+    })
 }
 
