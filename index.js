@@ -17,8 +17,13 @@ const {
 
 app.use(cors());
 
+
+
 app.get("/room",(req,res)=>{
     res.send({room:nanoid(10)})
+})
+app.get("/",(req,res)=>{
+    res.send("WELCOME TO ROCK PAPER SCISSORS, VICTOR MANUEL DELFIN SANTOS")
 })
 
 const server = require('http').createServer(app);
