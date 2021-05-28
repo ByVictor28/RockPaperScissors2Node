@@ -1,5 +1,7 @@
 const app = require('express')();
 const cors = require("cors");
+const { nanoid } = require("nanoid")
+
 // const {didIWin,getIntegerForm} = require("./game")
 const {
     printAllRooms,
@@ -14,6 +16,11 @@ const {
 } =  require("./roomFuntions")
 
 app.use(cors());
+
+app.get("/room",(req,res)=>{
+    res.send({room:nanoid(10)})
+})
+
 const server = require('http').createServer(app);
 
 const io = require('socket.io')(server,{
