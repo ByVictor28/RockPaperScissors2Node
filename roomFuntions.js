@@ -41,14 +41,13 @@ exports.creteRoom = (room,playerName) => {
     const newRoom = {
         room:room,
         moves:0,
-        player1won:false,
         players:[
             {player:1,name:playerName,option:"",score:0},
             {player:2,name:"",option:"",score:0}
         ]
     }
     
-    console.log("\n[[Room function]] Room created",newRoom,"\n")
+    // console.log("\n[[Room function]] Room created",newRoom,"\n")
     rooms.push(newRoom)
 }
 
@@ -56,8 +55,13 @@ exports.joinCreatedRoom = (room,playerName) =>{
     rooms.forEach(elementRoom => {
         if(elementRoom.room === room){
             const secondPlayer = {player:2,name:playerName,option:"",score:0}
-            elementRoom.players[1] = secondPlayer
-            console.log("\n[[Room function]] Has enter",elementRoom,"\n")
+            const firstPlayer = {player:2,name:playerName,option:"",score:0}
+            if(elementRoom.players[1].name===""){
+                elementRoom.players[1] = secondPlayer
+            }else if(elementRoom.players[0].name===""){
+                elementRoom.players[0] = firstPlayer
+            } 
+            // console.log("\n[[Room function]] Has enter",elementRoom,"\n")
         }
     })
 }
@@ -65,8 +69,6 @@ exports.joinCreatedRoom = (room,playerName) =>{
 exports.isRoomTaken = (room) =>{
     const foundRoom = rooms.find(element => element.room === room);    
     if(!foundRoom) {return false}
-
-    console.log("\n[[Room function]] Find room:",foundRoom, " \n")
     return true    
 }
 
@@ -93,7 +95,7 @@ exports.makeAMove = (room,name,option) =>{
                 const player1ElectionInt = getIntegerForm(element.players[0].option)
                 const player2ElectionInt = getIntegerForm(element.players[1].option)
                 const player1won = didIWin(player1ElectionInt,player2ElectionInt)
-                winner="IT IS A TIE"
+                element.winner="IT IS A TIE"
                 if(player1won===1){
                     element.players[0].score = element.players[0].score+1 
                     element.winner = element.players[0].name + " WINS"
@@ -111,7 +113,7 @@ exports.makeAMove = (room,name,option) =>{
 exports.cleanRoom = (room) =>{
     return rooms.find(element => {
         if(element.room===room){
-            console.log(element)
+            // console.log(element)
             element.moves = 0
             element.players[0].option =""
             element.players[1].option =""
@@ -127,32 +129,47 @@ exports.canAccesRoom = (room) =>{
     if(roomDetails.players[0].name==="" || roomDetails.players[1].name===""){
         return true
     }
-    console.log(`\n[[Room function]] get players count\n`)
+    // console.log(`\n[[Room function]] get players count\n`)
     return false
 }
 
 exports.leaveRoom = (room="1",name="1") =>{
+    console.log("[[LEAVE ROOM]]")
     return rooms.find(roomElement => {
         if(roomElement.room === room){
+            roomElement.moves=0
             if(roomElement.players[0].name===name){
-                roomElement.players[0].name = ""
-                roomElement.players[0].option = ""
-                roomElement.players[0].score = ""
-
-                
-                roomElement.players[1].option = ""
-                roomElement.players[1].score = ""
-            }else{
-                roomElement.players[1].name = ""
-                roomElement.players[1].option = ""
-                roomElement.players[1].score = ""
-
-                
-                roomElement.players[0].option = ""
-                roomElement.players[0].score = ""
+                roomElement.players[0].name=""
+                roomElement.players[0].option=""
+                roomElement.players[0].score=0
+                roomElement.players[1].score=0
+                roomElement.players[1].option=""
+            }else if(roomElement.players[1].name===name){
+                roomElement.players[1].name=""
+                roomElement.players[1].option=""
+                roomElement.players[1].score=0
+                roomElement.players[0].score=0
+                roomElement.players[0].option=""
+            }
+            if(
+                roomElement.players[0].name===""&&
+                roomElement.players[1].name===""
+            ){
+                roomElement.moves = 0
+                roomElement.room = ""
+                roomElement.winner=""
             }
             return roomElement
         }
     })
 }
 
+exports.printRoom = (room) =>{
+    rooms.forEach(elementRoom => {
+        if(elementRoom.room === room){
+            console.log(elementRoom)
+        }
+    })
+}
+
+exports.getAllRooms = rooms
